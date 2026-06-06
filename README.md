@@ -61,11 +61,12 @@ cd healthcare-database
 cp .env.example .env
 # Edit .env with your local credentials
 
-# 3. Start the database
+# 3. Start the database (runs on localhost:5433 to avoid conflicts with local Postgres)
 docker-compose up -d
 
-# 4. Run migrations (once migration tooling is set up)
-# Instructions will be added in Session 2
+# 4. Run all migrations
+source .venv/bin/activate
+alembic upgrade head
 ```
 
 ---
@@ -75,7 +76,8 @@ docker-compose up -d
 | Session | What Was Built | Status |
 |---|---|---|
 | 1 | Tech stack decision, project structure, GitHub repo | ✅ Complete |
-| 2 | `patients` table — schema + migration | Planned |
-| 3 | `appointments` table | Planned |
-| 4 | `medical_records` table | Planned |
-| 5 | Audit log table + triggers | Planned |
+| 2 | Docker + Alembic setup, `patients` table | ✅ Complete |
+| 3 | `providers` table | Planned |
+| 4 | `appointments` table | Planned |
+| 5 | `medical_records` table | Planned |
+| 6 | Audit log table + triggers | Planned |

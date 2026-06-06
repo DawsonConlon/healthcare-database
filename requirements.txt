@@ -1,0 +1,3 @@
+alembic
+psycopg[binary]
+python-dotenv

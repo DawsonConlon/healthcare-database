@@ -1,6 +1,8 @@
 # Secrets & credentials — NEVER commit these
 .env
-.env.*
+.env.local
+.env.*.local
+# .env.example IS committed — it's a safe template with no real values
 *.pem
 *.key
 *.crt
