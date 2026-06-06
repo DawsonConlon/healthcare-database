@@ -1,0 +1,50 @@
+# Secrets & credentials — NEVER commit these
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+credentials/
+
+# Docker overrides with local settings
+docker-compose.override.yml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Alembic (if chosen)
+# Keep alembic.ini but never commit connection strings inside it
+# Use environment variables for DATABASE_URL
+
+# Database dumps and seed files with real data
+*.dump
+*_real_data.sql
+*_prod*.sql
+seed_real*.sql
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
