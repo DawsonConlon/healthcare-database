@@ -11,7 +11,7 @@ Tables are built one at a time, tested, and signed off before the next one is st
 | # | Table | Module | Status |
 |---|---|---|---|
 | 1 | `patients` | Patients & Demographics | ✅ Built & Verified |
-| 2 | `providers` | Providers & Staff | ⬜ Planned |
+| 2 | `providers` | Providers & Staff | ✅ Built & Verified |
 | 3 | `appointments` | Appointments & Scheduling | ⬜ Planned |
 | 4 | `medical_records` | Medical Records / Notes | ⬜ Planned |
 | 5 | `audit_log` | Audit & Compliance | ⬜ Planned |
@@ -64,16 +64,46 @@ Tables are built one at a time, tested, and signed off before the next one is st
 
 ---
 
-### Upcoming: `providers`
+### `providers` ✅
 
-Staff members (doctors, nurses, admin). Required before `appointments` since appointments reference a provider.
+**Migration:** `alembic/versions/002_create_providers.py`  
+**Built:** Session 3
+
+| Column | Type | Nullable | Notes |
+|---|---|---|---|
+| `provider_id` | UUID PK | No | `DEFAULT gen_random_uuid()` |
+| `first_name` | VARCHAR(100) | No | |
+| `last_name` | VARCHAR(100) | No | |
+| `role` | `provider_role` ENUM | No | 'doctor' / 'nurse' / 'admin' |
+| `specialty` | VARCHAR(100) | Yes | e.g. 'General Practice', 'Pediatrics' |
+| `license_number` | VARCHAR(50) | Yes | Required for doctor/nurse; null for admin |
+| `license_province` | CHAR(2) | Yes | Province where licensed |
+| `email` | VARCHAR(255) | No | UNIQUE — identification only (auth is future) |
+| `phone` | VARCHAR(20) | Yes | |
+| `active` | BOOLEAN | No | DEFAULT TRUE |
+| `created_at` | TIMESTAMPTZ | No | DEFAULT NOW() |
+| `updated_at` | TIMESTAMPTZ | No | DEFAULT NOW(), auto-updated via trigger |
+| `archived_at` | TIMESTAMPTZ | Yes | NULL = active; set = soft-deleted |
+
+**Indexes:** `idx_providers_last_name`, `idx_providers_role`  
+**Unique:** `uq_provider_email`, `uq_provider_license` (partial — allows NULL for admin)  
+**Trigger:** `trg_providers_updated_at` — reuses `set_updated_at()` from migration 001  
+**Enum type:** `provider_role`
+
+---
+
+### Upcoming: `appointments`
+
+Links a patient to a provider for a scheduled visit. Requires both `patient_id` (FK → patients) and `provider_id` (FK → providers).
 
 Columns under consideration:
-- `provider_id` — UUID PK
-- `first_name`, `last_name`
-- `role` — enum: doctor / nurse / admin / other
-- `license_number` — for regulated health professionals
-- `email` — used for login (future)
-- `phone`
-- `active` — boolean
-- `created_at`, `updated_at`
+- `appointment_id` — UUID PK
+- `patient_id` — UUID FK → patients
+- `provider_id` — UUID FK → providers
+- `scheduled_at` — TIMESTAMPTZ (the booked date/time)
+- `duration_minutes` — INTEGER
+- `visit_type` — e.g. 'in-person' / 'telehealth' / 'follow-up'
+- `status` — enum: scheduled / confirmed / completed / cancelled / no-show
+- `reason` — brief reason for visit (patient-reported)
+- `notes` — provider notes pre/post visit
+- `created_at`, `updated_at`, `cancelled_at`
