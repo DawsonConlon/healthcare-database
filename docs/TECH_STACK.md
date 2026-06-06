@@ -68,50 +68,25 @@ with psycopg.connect("postgresql://user:password@localhost/clinic_db") as conn:
 
 ---
 
-## 4. Database Migrations: Two Options — You Choose
+## 4. Database Migrations: Alembic ✅
 
-A "migration" is a versioned SQL file that describes a change to the schema. Running migrations in order takes a fresh database and builds up the full schema step by step. This is how schema changes are tracked in version control.
+A "migration" is a versioned file that describes a change to the schema. Running migrations in order takes a fresh database and builds up the full schema step by step. This is how schema changes are tracked in version control.
 
----
+**Decision: Alembic** — chosen for its built-in rollback support, industry-standard status in Python projects, and clean migration history needed for PIPEDA compliance auditing.
 
-### Option A: Plain Numbered SQL Files + yoyo-migrations
+Alembic works perfectly with raw SQL — no SQLAlchemy models required.
 
-Files live in `migrations/` and are numbered:
-```
-migrations/
-├── 001_create_patients.sql
-├── 002_create_appointments.sql
-├── 003_add_consent_to_patients.sql
-```
-
-A tool called `yoyo-migrations` runs them in order and tracks which ones have been applied.
-
-**Pros:**
-- Completely transparent — every migration is just a `.sql` file you can read
-- Easy to understand as a beginner
-- No Python abstraction on top of your SQL
-
-**Cons:**
-- Rollback support requires you to write a separate `down` migration manually
-- Less commonly used in large production Python projects
-
-**Good for:** Learning, smaller projects, teams that prefer SQL-first.
-
----
-
-### Option B: Alembic (Recommended for Production Path)
-
-Alembic is the migration tool used alongside SQLAlchemy, but it works perfectly with raw SQL — you don't need to use SQLAlchemy models.
-
+**Project structure:**
 ```
 alembic/
 ├── versions/
-│   ├── 001_create_patients.py   ← contains raw SQL inside
+│   ├── 001_create_patients.py
 │   └── 002_create_appointments.py
 └── env.py
+alembic.ini
 ```
 
-Each migration file looks like this (raw SQL inside Python):
+**Each migration file uses raw SQL inside Python:**
 ```python
 def upgrade():
     op.execute("""
@@ -126,30 +101,19 @@ def downgrade():
     op.execute("DROP TABLE patients;")
 ```
 
-**Run commands:**
+**Key commands:**
 ```bash
 alembic upgrade head      # apply all pending migrations
 alembic downgrade -1      # roll back the last migration
 alembic history           # see what has been applied
 ```
 
-**Pros:**
-- Built-in rollback (`downgrade`) for every migration
-- Industry standard in Python projects — any Python developer will know it
-- `alembic history` gives you a clear audit trail of schema changes
-- Works cleanly with AWS RDS
+**Installation:**
+```bash
+pip install alembic
+```
 
-**Cons:**
-- Slightly more setup (a few config files)
-- Migration files are `.py` not `.sql` — slightly less "pure"
-
-**Recommendation: Alembic.** When we move to AWS, having proper rollback support and a clean migration history will matter. The extra setup is a one-time cost.
-
----
-
-### Decision Needed
-
-> **Before Session 2 begins:** Review both options above and pick one. Once chosen, we set it up and stick with it for the entire project.
+> Alembic will be fully set up in Session 2 alongside Docker and the first migration.
 
 ---
 
@@ -180,7 +144,7 @@ When the local version is stable:
 | PostgreSQL | 16 | Primary database | Decided |
 | psycopg3 | latest | Python ↔ Postgres driver | Decided |
 | Docker + docker-compose | latest | Local dev environment | Decided |
-| Alembic or yoyo | TBD | Schema migrations | **Needs decision** |
+| Alembic | latest | Schema migrations | Decided ✅ |
 | FastAPI | latest | REST API layer | Future |
 | AWS RDS | PostgreSQL 16 | Production hosting | Future |
 | AWS Secrets Manager | — | Credential management | Future |

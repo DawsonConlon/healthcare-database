@@ -15,7 +15,7 @@ See [`docs/TECH_STACK.md`](docs/TECH_STACK.md) for the full breakdown and ration
 | Database | PostgreSQL 16 |
 | Python driver | psycopg3 (`psycopg[binary]`) |
 | Local dev | Docker + docker-compose |
-| Migrations | TBD — see TECH_STACK.md |
+| Migrations | Alembic (raw SQL mode) |
 | Future API | FastAPI (not yet implemented) |
 | Future hosting | AWS RDS |
 
