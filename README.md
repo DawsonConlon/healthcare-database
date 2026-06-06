@@ -78,6 +78,6 @@ alembic upgrade head
 | 1 | Tech stack decision, project structure, GitHub repo | ✅ Complete |
 | 2 | Docker + Alembic setup, `patients` table | ✅ Complete |
 | 3 | `providers` table | ✅ Complete |
-| 4 | `appointments` table | Planned |
+| 4 | `appointments` table | ✅ Complete |
 | 5 | `medical_records` table | Planned |
 | 6 | Audit log table + triggers | Planned |

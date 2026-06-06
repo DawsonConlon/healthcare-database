@@ -12,7 +12,7 @@ Tables are built one at a time, tested, and signed off before the next one is st
 |---|---|---|---|
 | 1 | `patients` | Patients & Demographics | ✅ Built & Verified |
 | 2 | `providers` | Providers & Staff | ✅ Built & Verified |
-| 3 | `appointments` | Appointments & Scheduling | ⬜ Planned |
+| 3 | `appointments` | Appointments & Scheduling | ✅ Built & Verified |
 | 4 | `medical_records` | Medical Records / Notes | ⬜ Planned |
 | 5 | `audit_log` | Audit & Compliance | ⬜ Planned |
 | 6 | `billing` | Billing | ⬜ Future |
@@ -92,18 +92,34 @@ Tables are built one at a time, tested, and signed off before the next one is st
 
 ---
 
-### Upcoming: `appointments`
+### `appointments` ✅
 
-Links a patient to a provider for a scheduled visit. Requires both `patient_id` (FK → patients) and `provider_id` (FK → providers).
+**Migration:** `alembic/versions/003_create_appointments.py`  
+**Built:** Session 4
 
-Columns under consideration:
-- `appointment_id` — UUID PK
-- `patient_id` — UUID FK → patients
-- `provider_id` — UUID FK → providers
-- `scheduled_at` — TIMESTAMPTZ (the booked date/time)
-- `duration_minutes` — INTEGER
-- `visit_type` — e.g. 'in-person' / 'telehealth' / 'follow-up'
-- `status` — enum: scheduled / confirmed / completed / cancelled / no-show
-- `reason` — brief reason for visit (patient-reported)
-- `notes` — provider notes pre/post visit
-- `created_at`, `updated_at`, `cancelled_at`
+| Column | Type | Nullable | Notes |
+|---|---|---|---|
+| `appointment_id` | UUID PK | No | `DEFAULT gen_random_uuid()` |
+| `patient_id` | UUID FK | No | `REFERENCES patients(patient_id)` |
+| `provider_id` | UUID FK | No | `REFERENCES providers(provider_id)` |
+| `scheduled_at` | TIMESTAMPTZ | No | Booked date/time of visit |
+| `duration_minutes` | INTEGER | No | DEFAULT 30 |
+| `visit_type` | `appointment_visit_type` ENUM | No | in_person / telehealth / follow_up / urgent |
+| `status` | `appointment_status` ENUM | No | DEFAULT 'scheduled' |
+| `reason` | TEXT | Yes | Patient-reported reason |
+| `notes` | TEXT | Yes | Provider notes pre/post visit |
+| `cancelled_at` | TIMESTAMPTZ | Yes | Set when status → cancelled |
+| `created_at` | TIMESTAMPTZ | No | DEFAULT NOW() |
+| `updated_at` | TIMESTAMPTZ | No | DEFAULT NOW(), auto-updated via trigger |
+| `archived_at` | TIMESTAMPTZ | Yes | NULL = active; set = soft-deleted |
+
+**Indexes:** `idx_appointments_patient_id`, `idx_appointments_provider_id`, `idx_appointments_scheduled_at`, `idx_appointments_status`  
+**Foreign keys:** `patient_id → patients`, `provider_id → providers`  
+**Trigger:** `trg_appointments_updated_at` — reuses `set_updated_at()` from migration 001  
+**Enum types:** `appointment_status`, `appointment_visit_type`
+
+---
+
+### Upcoming: `medical_records`
+
+Stores clinical notes and visit summaries tied to a completed appointment.
