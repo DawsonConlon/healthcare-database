@@ -47,6 +47,7 @@ def upgrade() -> None:
         );
     """)
 
+    # speed up lookups by last name and date of birth
     op.execute("CREATE INDEX idx_patients_last_name ON patients (last_name);")
     op.execute("CREATE INDEX idx_patients_dob ON patients (date_of_birth);")
 
