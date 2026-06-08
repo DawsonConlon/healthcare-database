@@ -1,0 +1,11 @@
+# Backend dependencies for the FastAPI server.
+# Install with: pip install -r backend/requirements.txt
+#
+# These are separate from the root requirements.txt which covers
+# the database tooling (Alembic, psycopg3, python-dotenv).
+
+fastapi              # Web framework - handles routing, validation, auto-docs
+uvicorn[standard]    # ASGI server that runs the FastAPI app
+psycopg[binary]      # PostgreSQL driver - same one used by Alembic
+psycopg-pool         # Connection pooling for psycopg3 - reuses DB connections across requests
+python-dotenv        # Reads .env file for DATABASE_URL
