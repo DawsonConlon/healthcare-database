@@ -1,4 +1,4 @@
-# Tech Stack — Healthcare Database
+# Tech Stack - Healthcare Database
 
 This document explains every technology choice for this project, why it was chosen, and what the alternatives were.
 
@@ -8,31 +8,31 @@ This document explains every technology choice for this project, why it was chos
 
 **Why PostgreSQL?**
 - The industry standard for relational, structured data in healthcare
-- Supports ACID transactions — critical when writing patient records (a failed write must not leave partial data)
+- Supports ACID transactions - critical when writing patient records (a failed write must not leave partial data)
 - First-class support for `pgcrypto` (column-level encryption) and row-level security (RLS)
 - Excellent audit extension ecosystem
 - Fully supported by AWS RDS and every major cloud provider
 - Free and open source
 
 **Alternatives considered:**
-- MySQL/MariaDB — less powerful for complex queries and lacks some security extensions
-- SQLite — not suitable for multi-user or production use
-- MongoDB — document databases are not ideal for relational healthcare data (patients have appointments, appointments have records — these relationships matter)
+- MySQL/MariaDB - less powerful for complex queries and lacks some security extensions
+- SQLite - not suitable for multi-user or production use
+- MongoDB - document databases are not ideal for relational healthcare data (patients have appointments, appointments have records - these relationships matter)
 
 ---
 
 ## 2. Python Driver: psycopg3 (`psycopg[binary]`)
 
 **Why psycopg3?**
-- Direct access to PostgreSQL — you write SQL, it executes SQL, no translation layer
+- Direct access to PostgreSQL - you write SQL, it executes SQL, no translation layer
 - Full control over queries: important when optimizing complex clinical data queries
 - `psycopg3` is the current-generation driver (successor to `psycopg2`), with async support built in for when we add a FastAPI layer
-- No ORM means no "magic" hiding what queries actually run — in a compliance context, you want to know exactly what touches patient data
+- No ORM means no "magic" hiding what queries actually run - in a compliance context, you want to know exactly what touches patient data
 
 **Why not SQLAlchemy?**
 - SQLAlchemy is excellent but adds a translation layer between Python objects and SQL
 - For learning SQL and database design from the ground up, writing raw SQL is far more educational
-- In a PIPEDA-compliant system, you often need to write very specific queries for audit reports — raw SQL is clearer for this
+- In a PIPEDA-compliant system, you often need to write very specific queries for audit reports - raw SQL is clearer for this
 
 **Installation:**
 ```bash
@@ -54,7 +54,7 @@ with psycopg.connect("postgresql://user:password@localhost/clinic_db") as conn:
 ## 3. Local Development: Docker + docker-compose
 
 **Why Docker?**
-- Your local Postgres environment is identical to the production environment — no "works on my machine" problems
+- Your local Postgres environment is identical to the production environment - no "works on my machine" problems
 - Easy to reset: `docker-compose down -v` wipes the database, `docker-compose up -d` starts fresh
 - Multiple developers (or future-you on a new laptop) can set up instantly
 - Prevents your local Mac from accumulating Postgres versions and data
@@ -68,13 +68,13 @@ with psycopg.connect("postgresql://user:password@localhost/clinic_db") as conn:
 
 ---
 
-## 4. Database Migrations: Alembic ✅
+## 4. Database Migrations: Alembic
 
 A "migration" is a versioned file that describes a change to the schema. Running migrations in order takes a fresh database and builds up the full schema step by step. This is how schema changes are tracked in version control.
 
-**Decision: Alembic** — chosen for its built-in rollback support, industry-standard status in Python projects, and clean migration history needed for PIPEDA compliance auditing.
+**Decision: Alembic** - chosen for its built-in rollback support, industry-standard status in Python projects, and clean migration history needed for PIPEDA compliance auditing.
 
-Alembic works perfectly with raw SQL — no SQLAlchemy models required.
+Alembic works perfectly with raw SQL - no SQLAlchemy models required.
 
 **Project structure:**
 ```
@@ -120,7 +120,7 @@ pip install alembic
 ## 5. Future: FastAPI (API Layer)
 
 We are not building this yet. When we do:
-- **FastAPI** — Python web framework, async-first, built-in data validation via Pydantic
+- **FastAPI** - Python web framework, async-first, built-in data validation via Pydantic
 - Routes will map to database operations via psycopg3
 - JWT authentication for provider login
 - Every API endpoint that touches patient data will write to the audit log
@@ -130,10 +130,10 @@ We are not building this yet. When we do:
 ## 6. Future: AWS RDS (Production Hosting)
 
 When the local version is stable:
-- **AWS RDS for PostgreSQL** — managed Postgres, automatic backups, encryption at rest at the volume level
-- **AWS Secrets Manager** — store database credentials (never in code or `.env` in production)
-- **VPC** — database lives in a private subnet, not publicly accessible
-- **Multi-AZ deployment** — for high availability once in production use
+- **AWS RDS for PostgreSQL** - managed Postgres, automatic backups, encryption at rest at the volume level
+- **AWS Secrets Manager** - store database credentials (never in code or `.env` in production)
+- **VPC** - database lives in a private subnet, not publicly accessible
+- **Multi-AZ deployment** - for high availability once in production use
 
 ---
 
@@ -142,9 +142,9 @@ When the local version is stable:
 | Technology | Version | Purpose | Status |
 |---|---|---|---|
 | PostgreSQL | 16 | Primary database | Decided |
-| psycopg3 | latest | Python ↔ Postgres driver | Decided |
+| psycopg3 | latest | Python and Postgres driver | Decided |
 | Docker + docker-compose | latest | Local dev environment | Decided |
-| Alembic | latest | Schema migrations | Decided ✅ |
+| Alembic | latest | Schema migrations | Decided |
 | FastAPI | latest | REST API layer | Future |
 | AWS RDS | PostgreSQL 16 | Production hosting | Future |
-| AWS Secrets Manager | — | Credential management | Future |
+| AWS Secrets Manager | - | Credential management | Future |

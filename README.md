@@ -1,6 +1,6 @@
 # Healthcare Database
 
-A PostgreSQL-based database for a private clinic/practice, built to Canadian healthcare privacy standards (PIPEDA). This project is developed incrementally — one piece at a time, tested and approved before moving forward.
+A PostgreSQL-based database for a private clinic/practice, built to Canadian healthcare privacy standards (PIPEDA). This project is developed incrementally - one piece at a time, tested and approved before moving forward.
 
 > **This is a learning/portfolio project. No real patient data is stored here. See [SECURITY.md](SECURITY.md).**
 
@@ -24,14 +24,14 @@ See [`docs/TECH_STACK.md`](docs/TECH_STACK.md) for the full breakdown and ration
 ## Project Scope
 
 ### Modules (planned in order)
-1. **Patients & Demographics** — health card numbers, contact info, emergency contacts
-2. **Appointments & Scheduling** — provider assignment, visit type, status
-3. **Medical Records / Notes** — clinical notes, diagnoses, visit summaries
-4. **Providers & Staff** — roles, credentials
-5. **Audit Logs** — PIPEDA-required access and change tracking
-6. **Billing** — fees, payments (future)
-7. **Prescriptions** — medications, dosage, refills (future)
-8. **Lab Results** — orders, results, reference ranges (future)
+1. **Patients & Demographics** - health card numbers, contact info, emergency contacts
+2. **Appointments & Scheduling** - provider assignment, visit type, status
+3. **Medical Records / Notes** - clinical notes, diagnoses, visit summaries
+4. **Providers & Staff** - roles, credentials
+5. **Audit Logs** - PIPEDA-required access and change tracking
+6. **Billing** - fees, payments (future)
+7. **Prescriptions** - medications, dosage, refills (future)
+8. **Lab Results** - orders, results, reference ranges (future)
 
 ---
 
@@ -43,7 +43,7 @@ Key principles applied:
 - Encryption at rest for all PHI fields
 - TLS required for all database connections
 - Audit logging for all access to patient data
-- Data minimization — only collect what is clinically necessary
+- Data minimization - only collect what is clinically necessary
 - Consent tracking per patient
 
 ---
@@ -75,9 +75,9 @@ alembic upgrade head
 
 | Session | What Was Built | Status |
 |---|---|---|
-| 1 | Tech stack decision, project structure, GitHub repo | ✅ Complete |
-| 2 | Docker + Alembic setup, `patients` table | ✅ Complete |
-| 3 | `providers` table | ✅ Complete |
-| 4 | `appointments` table | ✅ Complete |
+| 1 | Tech stack decision, project structure, GitHub repo | Complete |
+| 2 | Docker + Alembic setup, `patients` table | Complete |
+| 3 | `providers` table | Complete |
+| 4 | `appointments` table | Complete |
 | 5 | `medical_records` table | Planned |
 | 6 | Audit log table + triggers | Planned |

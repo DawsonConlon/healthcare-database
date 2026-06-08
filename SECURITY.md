@@ -14,7 +14,7 @@ All sample data used in development must be synthetic (fake/generated).
 
 ## Reporting a Security Issue
 
-If you find a security vulnerability in this project, please open a GitHub Issue tagged `security`. Do not include sensitive details in the issue — describe the nature of the issue and we will follow up privately.
+If you find a security vulnerability in this project, please open a GitHub Issue tagged `security`. Do not include sensitive details in the issue - describe the nature of the issue and we will follow up privately.
 
 ## Compliance Context
 
