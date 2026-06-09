@@ -3,7 +3,7 @@
 This file brings a new AI session fully up to speed on this project.
 Read it top to bottom before touching anything.
 
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 ---
 
@@ -256,22 +256,58 @@ The downgrade of migration 002 and 003 must NOT drop this function - it belongs 
 
 ---
 
-## FastAPI Backend - Current State (UI-1 Complete)
+## FastAPI Backend - Current State (UI-2 Complete)
 
-The backend folder is on the backend branch. The server starts cleanly and
-/health and /stats return live data from the database.
+The backend folder is on the backend branch. PR #1 is open against main.
 
 What is implemented:
 - GET /health - returns {"status": "ok"}
 - GET /stats  - returns total_patients, total_providers, appointments_today (live DB queries)
-- GET/POST /patients - stubbed, returns placeholder message
-- GET/PATCH /patients/{id} - stubbed
-- GET/POST /providers - stubbed
-- GET/POST /appointments - stubbed
-- PATCH /appointments/{id} - stubbed
+- GET /patients - real SQL, optional ?search= on last_name ILIKE, ORDER BY last_name ASC
+- POST /patients - real INSERT with RETURNING, auto-stamps consent_given_at when consent_given=true
+- GET /patients/{id} - stub (UI-3)
+- PATCH /patients/{id} - stub (UI-3)
+- GET/POST /providers - stub (UI-6)
+- GET/POST /appointments - stub (UI-4)
+- PATCH /appointments/{id} - stub (UI-5)
+
+Pydantic models in patients.py:
+- PatientCreate: required (first_name, last_name, date_of_birth, consent_given) + all optional columns
+- PatientSummary: response shape for list and create
 
 The connection pool is opened at app startup via FastAPI's lifespan pattern
 (in main.py) and shared by all route handlers via database.get_pool().
+
+## React Frontend - Current State (UI-2 Complete)
+
+The frontend folder is on the frontend branch. PR #2 is open against main.
+
+Stack confirmed and locked:
+- React 19 + Vite + TypeScript (scaffold installed React 19, not 18 - both work the same)
+- Tailwind CSS v4 with @tailwindcss/vite plugin (no postcss config needed)
+- shadcn/ui components installed: button, input, dialog, table
+- Dark mode: class="dark" hardcoded on <html> in index.html - no toggle
+- HTTP client: axios via src/api/patients.ts
+
+Important Tailwind v4 note: there is no tailwind.config.js file.
+Configuration is done via CSS @theme in src/index.css.
+The npx tailwindcss init command does not exist in v4.
+Use: npm install -D @tailwindcss/vite
+
+Important shadcn note: shadcn creates files relative to the aliases in components.json.
+If the alias resolves incorrectly, files land in a literal "@/" folder.
+The fix is to move them manually to src/components/ui/ and src/lib/.
+
+File structure added:
+- frontend/src/api/patients.ts     - typed axios client (listPatients, createPatient)
+- frontend/src/components/Sidebar.tsx  - fixed sidebar, NavLink active highlighting
+- frontend/src/components/ui/      - shadcn components (button, dialog, input, table)
+- frontend/src/lib/utils.ts        - shadcn cn() utility
+- frontend/src/pages/DashboardPage.tsx    - stat cards from GET /stats
+- frontend/src/pages/PatientsPage.tsx     - table, search, detail panel, add dialog
+- frontend/src/pages/PlaceholderPage.tsx  - placeholder for unbuilt routes
+- frontend/src/App.tsx             - BrowserRouter with all 4 routes
+- .claude/launch.json              - preview server config (npm --prefix frontend run dev)
 
 ---
 
@@ -282,21 +318,21 @@ Each session below follows the same pattern: build, test, commit.
 | Session | What Gets Built | Status |
 |---|---|---|
 | UI-1 | FastAPI skeleton, /stats, /health, router stubs, CORS | Complete |
-| UI-2 | Patient list + search endpoints, React app scaffold, Patients page | Next |
-| UI-3 | Patient detail page, edit form, PATCH /patients/{id} endpoint | Planned |
+| UI-2 | Patient list + search endpoints, React app scaffold, Patients page | Complete |
+| UI-3 | Patient detail page, edit form, PATCH /patients/{id} endpoint | Next |
 | UI-4 | Appointments endpoints, Appointments list page | Planned |
 | UI-5 | Add appointment form, status update (confirm/cancel/complete) | Planned |
 | UI-6 | Providers page, polish, dark mode refinement, nav sidebar | Planned |
 
 
-### React frontend decisions (not yet started)
+### React frontend decisions (locked as of UI-2)
 
-- Framework: React 18 + Vite + TypeScript
-- Styling: Tailwind CSS + shadcn/ui (dark mode components)
-- HTTP client: axios (calls FastAPI at localhost:8000)
+- Framework: React 19 + Vite + TypeScript (scaffold defaulted to 19)
+- Styling: Tailwind CSS v4 + shadcn/ui
+- HTTP client: axios via src/api/patients.ts
 - Auth: none for now
 - Location: /frontend folder in the same repo
-- Branch: frontend (not yet created - branch off main when starting)
+- Branch: frontend (created, on GitHub, PR #2 open)
 
 Screens planned:
 1. Dashboard - stats cards (total patients, today appointments, total providers)
@@ -336,27 +372,37 @@ Python 3.9 compatibility: use Optional[X] from typing, not X | None.
 | 3 | providers table (migration 002) | main | 6bd537d |
 | 4 | appointments table (migration 003) | main | 3c81600 |
 | UI-1 | FastAPI skeleton, /stats, /health, router stubs | backend | 68b87dc |
+| UI-2 | GET/POST /patients (real SQL) + full React frontend scaffold | backend/frontend | 2ef7367 / f17ecff |
+
+PRs open on GitHub: #1 (backend - UI-2), #2 (frontend - UI-2)
 
 ---
 
-## What to Do Next (UI-2)
+## What to Do Next (UI-3)
 
-Start on the backend branch. The next session builds:
+Merge both UI-2 PRs first, then pull main.
+
+Work on the frontend branch (rebase or merge main in first).
 
 Backend (backend/routers/patients.py):
-- Replace the stub in list_patients() with a real query:
-  SELECT patient_id, first_name, last_name, date_of_birth, province, consent_given
-  FROM patients WHERE archived_at IS NULL
-  Optional: AND last_name ILIKE '%' || search || '%' when ?search= is provided
-  ORDER BY last_name ASC
-- Replace the stub in create_patient() with an INSERT and return the new row
+- Replace get_patient() stub:
+  SELECT all columns FROM patients WHERE patient_id = %s AND archived_at IS NULL
+  Also SELECT appointment list for this patient (patient_id, scheduled_at, status, visit_type, provider name)
+  Return 404 if not found
+- Replace update_patient() stub:
+  Accept partial body (all fields Optional in a PatientUpdate Pydantic model)
+  Build a dynamic UPDATE statement - only set columns that are not None
+  updated_at is auto-stamped by the DB trigger, do not pass it
+  Return the updated row
 
-Frontend (create /frontend folder on frontend branch):
-- Scaffold with: npm create vite@latest frontend -- --template react-ts
-- Install: tailwindcss, @shadcn/ui, axios
-- Configure dark mode in tailwind.config
-- Build the sidebar layout component
-- Build the Patients list page (table with name, DOB, province, consent status)
-- Wire the search bar to GET /patients?search=
+Frontend (frontend branch):
+- Add GET /patients/{id} to src/api/patients.ts
+- Add PATCH /patients/{id} to src/api/patients.ts
+- Build PatientDetailPage at /patients/:id
+  Full record display: all columns, not just summary fields
+  Edit button that switches the page into edit mode (inline form)
+  Appointment history list at the bottom (date, status, visit type, provider)
+- Wire the "Full record (UI-3)" button in the detail panel to navigate to /patients/:id
+- Add react-router-dom useParams in the new page to read the UUID from the URL
 
-Test end to end: add a patient in the UI, confirm the row appears in psql.
+Test end to end: open a patient detail page, edit a field, confirm the change appears in psql.
